@@ -20,8 +20,6 @@
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE)
 [![Kaggle](https://img.shields.io/badge/Kaggle-Capstone%202026-20BEFF?style=flat-square&logo=kaggle&logoColor=white)](https://kaggle.com)
 
-**[Live Demo](https://learnforge.up.railway.app)** · **[Kaggle Writeup](https://kaggle.com)** 
-
 </div>
 
 ---
