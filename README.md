@@ -20,6 +20,8 @@
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE)
 [![Kaggle](https://img.shields.io/badge/Kaggle-Capstone%202026-20BEFF?style=flat-square&logo=kaggle&logoColor=white)](https://kaggle.com)
 
+**[demo Video](#DemoVideo)**
+
 </div>
 
 ---
@@ -44,9 +46,9 @@ You choose your engineering track. Four specialist AI agents — Tutor, Quiz, Pl
 - [Security](#security)
 - [Tech stack](#tech-stack)
 - [Screenshots](#screenshots)
+- [demo Video](#DemoVideo)
 - [Contributing](#contributing)
 - [Developer](#developer)
-
 ---
 
 ## Architecture
@@ -519,8 +521,28 @@ Demonstration ──────────────────────
 
 <img width="1200" height="673" alt="Screenshot 2026-06-26 024228" src="https://github.com/user-attachments/assets/0018bc69-bdef-432b-8670-e53e4c152e65" />
 
+***
+
+<img width="1251" height="535" alt="Screenshot 2026-06-26 195227" src="https://github.com/user-attachments/assets/c116c5f2-54ba-4ab4-ba5d-54a8eba04495" />
+
+***
+
+<img width="1460" height="519" alt="Screenshot 2026-06-26 195124" src="https://github.com/user-attachments/assets/8a0093e0-c7f5-4999-8dab-26cbcfe27be4" />
+
+***
+
+<img width="1270" height="457" alt="Screenshot 2026-06-26 194816" src="https://github.com/user-attachments/assets/9cac9b12-c2b1-4deb-b26d-88018b5d25aa" />
+
+***
+<img width="1242" height="438" alt="Screenshot 2026-06-26 195047" src="https://github.com/user-attachments/assets/983bd0fa-4463-4fe7-a12f-88bb90410f55" />
+
 ---
 
+## DemoVideo
+
+https://github.com/user-attachments/assets/1b1db7a2-c973-41da-bbc2-6c3a3a8b4470
+
+---
 ## Contributing
 
 Pull requests are welcome. For major changes, open an issue first.
