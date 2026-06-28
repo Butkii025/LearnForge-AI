@@ -20,7 +20,7 @@
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE)
 [![Kaggle](https://img.shields.io/badge/Kaggle-Capstone%202026-20BEFF?style=flat-square&logo=kaggle&logoColor=white)](https://kaggle.com)
 
-**[Kaggle Writeup](#https://kaggle.com/competitions/vibecoding-agents-capstone-project/writeups/learnforge-ai-a-multi-agent-study-system-for-engi)** · **[Video Demo](#DemoVideo)**
+**[Kaggle Writeup](https://kaggle.com/competitions/vibecoding-agents-capstone-project/writeups/learnforge-ai-a-multi-agent-study-system-for-engi)** · **[Video Demo](#DemoVideo)**
 
 ---
 
