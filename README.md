@@ -46,15 +46,7 @@ You choose your engineering track. Four specialist AI agents — Tutor, Quiz, Pl
 - [Security](#security)
 - [Tech stack](#tech-stack)
 - [Screenshots](#screenshots)
-- [demo Video](#DemoVideo)echo "# LearnForge-AI-2" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/Butkii025/LearnForge-AI-2.git
-git push -u origin main
-- [Contributing](#contributing)
-- [Developer](#developer)
+- [demo Video](#DemoVideo)echo 
 ---
 
 ## Architecture
@@ -573,9 +565,14 @@ cd frontend && npm install && npm run dev
 ## Developer
 * Priynashu Vijay
 * 📝 License [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](/LICENSE)
-#   L e a r n F o r g e - A I - 2  
- #   L e a r n F o r g e - A I - 2  
- #   L e a r n F o r g e  
- #   L e a r n F o r g e  
- #   L e a r n F o r g e  
+#   L e a r n F o r g e - A I - 2 
+ 
+ #   L e a r n F o r g e - A I - 2 
+ 
+ #   L e a r n F o r g e 
+ 
+ #   L e a r n F o r g e 
+ 
+ #   L e a r n F o r g e 
+ 
  
