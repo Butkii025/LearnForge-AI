@@ -9,7 +9,7 @@
 ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 ```
 
-### Your AI-powered study agent for every software engineering student
+### AI-powered study agent for every software engineering student
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org)
@@ -20,7 +20,11 @@
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE)
 [![Kaggle](https://img.shields.io/badge/Kaggle-Capstone%202026-20BEFF?style=flat-square&logo=kaggle&logoColor=white)](https://kaggle.com)
 
-**[demo Video](#DemoVideo)**
+**[Kaggle Writeup](#https://kaggle.com/competitions/vibecoding-agents-capstone-project/writeups/learnforge-ai-a-multi-agent-study-system-for-engi)** · **[Video Demo](#DemoVideo)**
+
+---
+
+*Built for the Google × Kaggle 5-Day AI Agents Intensive Capstone 2026*
 
 </div>
 
@@ -28,537 +32,378 @@
 
 ## What is LearnForge?
 
-LearnForge is a **multi-agent AI study system** built for software engineering students across four disciplines — CSE, IT, AI/ML, and Data Science. It runs entirely on your local machine using **Gemma 3 via Ollama** — no cloud API keys, no subscription, no internet required once set up.
+LearnForge is an **AI study assistant** that helps software engineering students learn smarter. You pick your engineering track — CSE, IT, AI/ML, or Data Science — and four AI agents work together to tutor you, quiz you, plan your study schedule, and review your code.
 
-You choose your engineering track. Four specialist AI agents — Tutor, Quiz, Planner, and Code Review — coordinate through an **orchestrator built with Google ADK** and access tools via a **local MCP server**. The result is a personalised, adaptive study companion that knows what you need to learn next.
+The entire system runs **on your own computer** using Gemma 3 (a free local AI model). No internet required after setup. No API keys. No monthly fees.
+
+> Think of it as having a personal AI tutor available 24/7 that knows exactly what you need to study next.
 
 ---
 
-## Table of Contents
+## Who is this for?
 
-- [Architecture](#architecture)
-- [Agent system](#agent-system)
-- [MCP server and tools](#mcp-server-and-tools)
-- [Engineering tracks](#engineering-tracks)
-- [Project structure](#project-structure)
-- [Quick start](#quick-start)
-- [Railway deployment](#railway-deployment)
-- [Security](#security)
-- [Tech stack](#tech-stack)
-- [Screenshots](#screenshots)
-- [demo Video](#DemoVideo)echo 
+| Student type | What LearnForge helps with |
+|---|---|
+| CSE students | Data Structures, Algorithms, OS, DBMS, Networks, System Design |
+| IT students | Networking, Cybersecurity, Cloud Computing, DevOps, Linux |
+| AI/ML students | ML Theory, Deep Learning, NLP, LLMs, MLOps |
+| Data Science students | Statistics, Pandas, SQL, EDA, Feature Engineering |
+
 ---
 
-## Architecture
+## How it works — simple version
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         STUDENT BROWSER                             │
-│                    React 18 + Vite Frontend                         │
-│         [Track Selector] [Tutor] [Quiz] [Planner] [Code Review]     │
-└──────────────────────────────┬──────────────────────────────────────┘
-                               │  REST + JWT
-                               ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      FASTAPI BACKEND                                │
-│                                                                     │
-│   ┌─────────────┐    ┌─────────────────────────────────────────┐   │
-│   │  Security   │    │         ORCHESTRATOR AGENT (ADK)        │   │
-│   │  Layer      │───▶│   Routes tasks · Manages state         │   │
-│   │  JWT · Rate │    │   Coordinates specialist agents         │   │
-│   │  Sanitizer  │    └────────────┬────────────────────────────┘   │
-│   └─────────────┘                 │  delegates to                   │
-│                          ┌────────┴────────┐                        │
-│               ┌──────────▼──┐   ┌──────────▼──┐                    │
-│               │ TutorAgent  │   │  QuizAgent  │                    │
-│               │  (ADK)      │   │   (ADK)     │                    │
-│               └──────────┬──┘   └──────────┬──┘                    │
-│               ┌──────────▼──┐   ┌──────────▼──┐                    │
-│               │PlannerAgent │   │ CodeReview  │                    │
-│               │  (ADK)      │   │  Agent(ADK) │                    │
-│               └──────────┬──┘   └──────────┬──┘                    │
-│                          └────────┬─────────┘                       │
-│                                   ▼                                 │
-│                   ┌───────────────────────────────┐                 │
-│                   │       LOCAL MCP SERVER        │                 │
-│                   │  search_arxiv · run_code      │                 │
-│                   │  get_progress · gen_quiz      │                 │
-│                   │  get_concept_graph            │                 │
-│                   └───────────────────────────────┘                 │
-│                                   │                                 │
-│              ┌────────────────────┼────────────────────┐            │
-│              ▼                    ▼                    ▼            │
-│         ┌─────────┐         ┌──────────┐        ┌──────────┐       │
-│         │ arXiv   │         │ Sandbox  │        │ SQLite   │       │
-│         │  API    │         │  Python  │        │   DB     │       │
-│         └─────────┘         └──────────┘        └──────────┘       │
-│                                                                     │
-│                    ┌─────────────────────┐                          │
-│                    │  Gemma 3 via Ollama │                          │
-│                    │  (runs fully local) │                          │
-│                    └─────────────────────┘                          │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Data flow
-
-```
-Student input
-     │
-     ▼
-[Security layer] ── sanitise · validate · rate-limit · JWT verify
-     │
-     ▼
-[Orchestrator] ── classify intent ── route to specialist agent
-     │
-     ├─── "explain X"      ──▶  TutorAgent      ──▶ MCP: search_arxiv
-     ├─── "quiz me on X"   ──▶  QuizAgent       ──▶ MCP: generate_quiz + get_progress
-     ├─── "plan my week"   ──▶  PlannerAgent     ──▶ MCP: get_progress + concept_graph
-     └─── "review my code" ──▶  CodeReviewAgent  ──▶ MCP: run_code_sandbox
-                                      │
-                                      ▼
-                              [Gemma 3 / Ollama]
-                                      │
-                                      ▼
-                              Response streamed back to React UI
+You type a question or request
+         ↓
+Orchestrator Agent figures out what you need
+         ↓
+Sends your request to the right specialist agent
+         ↓
+┌─────────────┬──────────────┬──────────────┬───────────────┐
+│ Tutor Agent │  Quiz Agent  │Planner Agent │Code Review    │
+│             │              │              │Agent          │
+│ Explains    │ Gives you    │ Builds your  │ Reads your    │
+│ concepts    │ MCQ tests    │ weekly study │ code and      │
+│ clearly     │ and tracks   │ plan         │ fixes it      │
+│             │ weak areas   │              │               │
+└─────────────┴──────────────┴──────────────┴───────────────┘
+         ↓
+Agents use tools (search papers, run your code, check your progress)
+         ↓
+Answer comes back to your browser
 ```
 
 ---
 
-## Agent system
+## Competition requirements — all 6 covered
 
-LearnForge uses **Google ADK** to build a true multi-agent hierarchy. The orchestrator receives every student request, classifies intent, and delegates to the right specialist.
+This project was built for the Google × Kaggle Vibe Coding Capstone 2026. Here is exactly where each requirement is demonstrated:
 
-```
-OrchestratorAgent
-├── TutorAgent
-│   ├── Explains concepts with intuition → key points → examples
-│   ├── Adapts depth to student track and self-reported level
-│   └── Uses: search_arxiv tool for recent papers
-│
-├── QuizAgent
-│   ├── Generates adaptive 4-option MCQs (beginner / intermediate / advanced)
-│   ├── Tracks wrong answers in SQLite for spaced repetition
-│   └── Uses: generate_quiz + get_progress tools
-│
-├── PlannerAgent
-│   ├── Builds 7-day and 30-day study roadmaps per track
-│   ├── Adjusts plan dynamically based on quiz performance
-│   └── Uses: get_progress + get_concept_graph tools
-│
-└── CodeReviewAgent
-    ├── Reviews Python, JavaScript, and SQL code
-    ├── Returns: correctness · style · time complexity · suggested fix
-    └── Uses: run_code_sandbox tool (actual execution + real output)
-```
+| # | Requirement | What was built | Where to find it |
+|---|---|---|---|
+| 1 | **Multi-agent system (ADK)** | Orchestrator + 4 specialist agents built with Google ADK | `backend/agents/` |
+| 2 | **MCP Server** | Local Python MCP server with 5 tools agents can call | `backend/mcp/server.py` |
+| 3 | **Antigravity** | Entire project generated using Antigravity CLI agent | Video demo |
+| 4 | **Security features** | JWT auth, prompt injection guard, sandboxed code execution, rate limiting | `backend/security/` |
+| 5 | **Deployability** | Railway.app auto-deploy + Docker + one-command local setup | `railway.toml`, `Dockerfile` |
+| 6 | **Agent skills (CLI)** | `learnforge-cli` with 4 working commands | `cli/learnforge_cli.py` |
 
-### Agent communication pattern
+---
+
+## The 4 AI agents explained
+
+### 1. Orchestrator Agent
+This is the "brain" that receives your message, decides which specialist to send it to, and coordinates everything.
 
 ```
-Student: "Quiz me on transformers, I'm intermediate level"
-         │
-         ▼
-OrchestratorAgent classifies → { intent: "quiz", topic: "transformers", level: "intermediate" }
-         │
-         ▼
-QuizAgent.run(topic="transformers", level="intermediate")
-         │
-         ├── calls MCP: get_progress(student_id) → weak subtopics
-         ├── calls MCP: generate_quiz(topic, level, weak_areas)
-         │                    │
-         │                    ▼
-         │             Gemma 3 generates 5 MCQs
-         │
-         └── returns structured quiz JSON → React UI renders it
+You: "Quiz me on transformers, I'm intermediate level"
+  ↓
+Orchestrator reads your message
+  ↓
+Decides → this needs the Quiz Agent
+  ↓
+Passes: topic=transformers, level=intermediate
+  ↓
+Quiz Agent takes over
+```
+
+### 2. Tutor Agent
+Explains any concept in a way that actually makes sense. Always gives:
+- A simple 2-sentence intuition first
+- Key bullet points
+- A worked example or code snippet
+- One real-world application
+
+### 3. Quiz Agent
+Generates 4-option MCQs adapted to your level. Tracks which topics you keep getting wrong and focuses on those next time (spaced repetition).
+
+### 4. Planner Agent
+Builds you a personalised 7-day or 30-day study plan based on your track and your past quiz performance. If you're weak on a topic, it schedules more time there automatically.
+
+### 5. Code Review Agent
+Paste your Python, JavaScript, or SQL code. The agent runs it in a safe sandbox, checks for bugs, style issues, and time complexity, then gives you a fixed version.
+
+---
+
+## The MCP Server — tools the agents use
+
+The MCP (Model Context Protocol) server is a local service that gives agents access to real tools, not just the language model.
+
+```
+MCP Server running locally on port 8001
+│
+├── search_arxiv(query)
+│   → Searches academic papers so the Tutor Agent can cite real research
+│
+├── run_code_sandbox(code)
+│   → Safely runs your code in an isolated box with a 10-second timeout
+│
+├── get_student_progress(student_id)
+│   → Reads your quiz history from the local database
+│
+├── generate_quiz(topic, level, weak_areas)
+│   → Asks Gemma 3 to create fresh MCQs tailored to your weak spots
+│
+└── get_concept_graph(topic, track)
+    → Returns what topics you should learn before tackling this one
 ```
 
 ---
 
-## MCP server and tools
-
-The local MCP server runs as a separate process and exposes tools that all agents share.
+## Security — 4 layers of protection
 
 ```
-MCP Server (localhost:8001)
-│
-├── search_arxiv(query: str, max_results: int)
-│       Searches arXiv for recent papers, returns title + abstract + URL
-│       Used by: TutorAgent (finding latest research on topics)
-│
-├── run_code_sandbox(code: str, language: str, timeout: int)
-│       Executes code in a subprocess with strict resource limits
-│       Returns: stdout, stderr, exit code, execution time
-│       Used by: CodeReviewAgent (running student code safely)
-│
-├── get_student_progress(student_id: str)
-│       Reads quiz history, accuracy per topic, streak from SQLite
-│       Returns: JSON progress object
-│       Used by: QuizAgent, PlannerAgent
-│
-├── generate_quiz(topic: str, level: str, weak_areas: list)
-│       Sends structured prompt to Gemma 3 via Ollama
-│       Returns: list of MCQ objects with options and explanations
-│       Used by: QuizAgent
-│
-└── get_concept_graph(topic: str, track: str)
-        Returns topic dependency map (what to learn before X)
-        Used by: PlannerAgent (building logical study order)
-```
-
-### Sandbox security model
-
-```
-run_code_sandbox
-        │
-        ▼
-subprocess.Popen(
-  ["python", "-c", code],
-  timeout=10,              ← hard kill after 10 seconds
-  cwd="/tmp/sandbox",      ← isolated working directory
-  env={},                  ← no environment variables passed
-  preexec_fn=set_limits    ← ulimit: 64MB RAM, no network, no file writes
-)
+Your message comes in
+        ↓
+① Rate limiting — max 20 messages/min so no one can spam the system
+        ↓
+② JWT authentication — you must be logged in with a valid token
+        ↓
+③ Prompt injection guard — strips attempts to hijack the AI with tricks
+   Example: "ignore previous instructions" gets caught and removed
+        ↓
+④ Sandboxed code execution — your code runs in a locked box:
+   - 10 second timeout (kills infinite loops)
+   - 64MB RAM limit
+   - No internet access from inside the sandbox
+   - No file system access outside /tmp/sandbox
+        ↓
+Safe response sent back to you
 ```
 
 ---
 
-## Engineering tracks
-
-LearnForge adapts its entire content — quiz bank, tutor knowledge, planner goals, and concept graph — based on the student's chosen track.
+## Project folder structure
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                        TRACK SELECTOR                            │
-│                                                                  │
-│   ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌────────────┐  │
-│   │    CSE    │  │    IT     │  │   AI/ML   │  │    Data    │  │
-│   │           │  │           │  │           │  │  Science   │  │
-│   │ DS & Algo │  │ Networks  │  │ ML Theory │  │ Statistics │  │
-│   │ OS · DBMS │  │ Cyber Sec │  │Deep Learn │  │ Pandas·SQL │  │
-│   │ Networks  │  │ Cloud/Dev │  │ NLP · LLM │  │ EDA · Viz  │  │
-│   │ Sys Design│  │ Linux·SRE │  │ MLOps     │  │ Feature Eng│  │
-│   └───────────┘  └───────────┘  └───────────┘  └────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-Each track maps to:
-- A curated **topic list** shown in the sidebar
-- A **quiz bank** tuned to that discipline's exam patterns
-- A **concept dependency graph** for logical study ordering
-- **Study plan templates** with realistic weekly hour targets
-- **Tutor persona** calibrated to the vocabulary of that field
-
----
-
-## Project structure
-
-```
-learnforge/
+learnforge-AI/
 │
-├── backend/                        Python + FastAPI
+├── backend/                    ← Python server (FastAPI)
 │   ├── agents/
-│   │   ├── orchestrator.py         Root ADK agent — routes all requests
-│   │   ├── tutor_agent.py          Explains concepts via Gemma 3
-│   │   ├── quiz_agent.py           Generates and evaluates MCQs
-│   │   ├── planner_agent.py        Builds personalised roadmaps
-│   │   └── code_review_agent.py    Reviews code with sandbox execution
+│   │   ├── orchestrator.py     ← Routes your request to the right agent
+│   │   ├── tutor_agent.py      ← Explains concepts
+│   │   ├── quiz_agent.py       ← Generates and grades MCQs
+│   │   ├── planner_agent.py    ← Builds study plans
+│   │   └── code_review_agent.py← Reviews and fixes code
 │   │
 │   ├── mcp/
-│   │   ├── server.py               MCP server entry point (port 8001)
+│   │   ├── server.py           ← MCP server (gives agents tools to use)
 │   │   └── tools/
-│   │       ├── arxiv_tool.py       arXiv paper search
-│   │       ├── sandbox_tool.py     Safe Python execution
-│   │       ├── progress_tool.py    SQLite read/write
-│   │       └── quiz_tool.py        MCQ generation via local LLM
+│   │       ├── arxiv_tool.py   ← Paper search
+│   │       ├── sandbox_tool.py ← Safe code execution
+│   │       ├── progress_tool.py← Read/write your progress DB
+│   │       └── quiz_tool.py    ← MCQ generation via Gemma 3
 │   │
 │   ├── security/
-│   │   ├── auth.py                 JWT issue + verify (python-jose)
-│   │   ├── sanitizer.py            Prompt injection detection + strip
-│   │   └── rate_limiter.py         slowapi per-route limits
+│   │   ├── auth.py             ← Login tokens (JWT)
+│   │   ├── sanitizer.py        ← Blocks prompt injection attacks
+│   │   └── rate_limiter.py     ← Limits requests per minute
 │   │
 │   ├── db/
-│   │   ├── models.py               SQLAlchemy ORM models
-│   │   └── migrations/             Alembic migration scripts
+│   │   └── models.py           ← Database table definitions
 │   │
 │   ├── api/
-│   │   └── routes.py               FastAPI route definitions
+│   │   └── routes.py           ← All API endpoints (/chat, /quiz, etc.)
 │   │
-│   ├── main.py                     App entry — mounts routes, CORS, middleware
-│   ├── requirements.txt
-│   └── Dockerfile
+│   ├── main.py                 ← Starts the FastAPI server
+│   ├── requirements.txt        ← Python packages needed
+│   └── Dockerfile              ← How to package the backend
 │
-├── frontend/                       React 18 + Vite + Tailwind CSS
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Sidebar.jsx         Collapsible nav with track-aware topics
-│   │   │   ├── TopBar.jsx          Model status, user info, notifications
-│   │   │   ├── TrackSelector.jsx   CSE / IT / AI/ML / DS switcher
-│   │   │   ├── HomeDashboard.jsx   Landing — project info + stats + agents
-│   │   │   ├── TutorChat.jsx       Multi-turn chat with streaming response
-│   │   │   ├── QuizMode.jsx        Adaptive MCQ with instant feedback
-│   │   │   ├── StudyPlanner.jsx    Weekly/monthly roadmap view
-│   │   │   ├── CodeReview.jsx      Monaco editor + agent feedback panel
-│   │   │   └── Analytics.jsx       Progress charts (Recharts)
-│   │   │
-│   │   ├── hooks/
-│   │   │   ├── useAgent.js         Calls orchestrator API, handles streaming
-│   │   │   └── useProgress.js      Reads and updates student progress
-│   │   │
-│   │   ├── api/
-│   │   │   └── client.js           Axios instance with JWT interceptor
-│   │   │
-│   │   ├── App.jsx                 Router + track context provider
-│   │   └── main.jsx
-│   │
-│   ├── index.html
-│   ├── vite.config.js
-│   └── package.json
+├── frontend/                   ← React web app (what you see in browser)
+│   └── src/
+│       ├── components/
+│       │   ├── HomeDashboard.jsx   ← Main page with project info
+│       │   ├── TrackSelector.jsx   ← Pick CSE / IT / AI-ML / DS
+│       │   ├── TutorChat.jsx       ← Chat with the AI tutor
+│       │   ├── QuizMode.jsx        ← Take adaptive MCQ tests
+│       │   ├── StudyPlanner.jsx    ← See your weekly study plan
+│       │   ├── CodeReview.jsx      ← Paste code, get feedback
+│       │   └── Analytics.jsx       ← See your progress charts
+│       └── App.jsx                 ← Main app file
 │
 ├── cli/
-│   ├── learnforge_cli.py           Agents CLI skill (4 commands)
-│   └── setup.py                    pip-installable CLI package
+│   └── learnforge_cli.py       ← Command line tool (Agent skill)
 │
-├── .github/
-│   └── workflows/
-│       └── deploy.yml              CI: test → build → push to Railway
+├── .github/workflows/
+│   └── deploy.yml              ← Auto-deploy to Railway on every push
 │
-├── railway.toml                    Railway service config
-├── docker-compose.yml              Local: frontend + backend + ollama
-├── .env.example                    Required environment variables
-└── README.md
+├── docker-compose.yml          ← Run everything locally in one command
+├── railway.toml                ← Railway deployment config
+├── .env.example                ← Template for your environment variables
+└── README.md                   ← This file
 ```
 
 ---
 
-## Quick start
+## Running locally on your computer
 
-### Prerequisites
+### What you need first
 
-- [Docker Desktop](https://docker.com) 24+
-- [Ollama](https://ollama.ai) installed locally
-- Git
+- **Python 3.11+** — download from https://python.org
+- **Node.js 18+** — download from https://nodejs.org
+- **Ollama** — download from https://ollama.ai (this runs the AI model)
+- **Git** — download from https://git-scm.com
 
-### 1. Clone and configure
+### Step 1 — Get the code
 
 ```bash
-git clone https://github.com/yourusername/learnforge.git
-cd learnforge
+git clone https://github.com/Butkii025/learnforge-AI.git
+cd learnforge-AI
+```
+
+### Step 2 — Set up your settings
+
+```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your values:
+Open `.env` and fill it in:
 
 ```env
-SECRET_KEY=your-super-secret-key-here
-OLLAMA_HOST=http://host.docker.internal:11434
+SECRET_KEY=make-up-any-long-random-string-here
+OLLAMA_HOST=http://localhost:11434
 DATABASE_URL=sqlite:///./db/progress.db
 CORS_ORIGINS=http://localhost:3000
 ```
 
-### 2. Pull the local model
+### Step 3 — Download the AI model
 
 ```bash
 ollama pull gemma3
+ollama serve
 ```
 
-### 3. Run everything
+Leave this terminal running. Open a new one for the next steps.
+
+### Step 4 — Start the backend
+
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Mac/Linux
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+### Step 5 — Start the MCP server
+
+Open another terminal:
+
+```bash
+cd backend
+venv\Scripts\activate
+python mcp/server.py
+```
+
+### Step 6 — Start the frontend
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Step 7 — Open in browser
+
+Go to **http://localhost:3000** — LearnForge is running!
+
+### Shortcut — Docker (if you have Docker Desktop installed)
+
+Instead of all the above steps, just run:
 
 ```bash
 docker compose up
 ```
 
-That's it. Open **http://localhost:3000**
+Then open **http://localhost:3000**
 
-```
-docker compose up
-│
-├── pulls backend image   → FastAPI on :8000
-├── pulls frontend image  → React on :3000
-└── starts MCP server     → MCP on :8001
-     │
-     └── all connect to Ollama running natively on your machine
-```
+---
 
-### 4. Optional — install the CLI skill
+## CLI tool — use LearnForge from the terminal
 
 ```bash
 pip install -e ./cli
-learnforge --help
 ```
 
-```
-Usage: learnforge [OPTIONS] COMMAND
-
-Commands:
-  study   Explain a topic with examples
-  quiz    Take an adaptive MCQ session
-  plan    Generate a personalised study roadmap
-  review  Get AI feedback on your code file
-
-Examples:
-  learnforge study --topic "transformer attention" --track aiml
-  learnforge quiz  --topic "backpropagation" --difficulty hard
-  learnforge plan  --goal "master MLOps in 30 days" --track aiml
-  learnforge review --file model.py
-```
-
----
-
-## Railway deployment
-
-LearnForge deploys as **two Railway services** connected to the same repo.
-
-```
-GitHub main branch
-        │
-        │ push triggers
-        ▼
-GitHub Actions CI
-        │
-        ├── run tests (pytest + vitest)
-        ├── build Docker image (backend)
-        └── trigger Railway deploy
-                │
-                ├── Service 1: Backend
-                │   Dockerfile: backend/Dockerfile
-                │
-                └── Service 2: Frontend
-                    Build: npm run build → /dist
-                    Serve: railway static site
-```
----
-
-## Security
-
-LearnForge implements four layers of security:
-
-```
-Incoming request
-       │
-       ▼
-┌─────────────────────────────────────────────┐
-│  1. RATE LIMITING (slowapi)                 │
-│     /api/chat     → 20 req/min per IP       │
-│     /api/quiz     → 30 req/min per IP       │
-│     /api/auth     → 5 req/min per IP        │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────┐
-│  2. JWT AUTHENTICATION (python-jose)        │
-│     Bearer token required on all /api/*     │
-│     Token expires: 24 hours                 │
-│     Refresh token: 7 days                   │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────┐
-│  3. PROMPT INJECTION GUARD (sanitizer.py)   │
-│     Strips: "ignore previous instructions"  │
-│     Strips: system prompt override patterns │
-│     Strips: jailbreak templates             │
-│     Max input length: 4000 characters       │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────┐
-│  4. SANDBOXED CODE EXECUTION                │
-│     Subprocess with: timeout=10s            │
-│     ulimit: 64MB RAM · no network           │
-│     Isolated /tmp/sandbox directory         │
-│     Blocked: os · subprocess · open()       │
-└─────────────────────────────────────────────┘
-```
-
----
-
-## Tech stack
-
-| Layer | Technology | Why |
-|---|---|---|
-| LLM | Gemma 3 via Ollama | Runs fully locally — no API key, no cost, no internet |
-| Agent framework | Google ADK | Course requirement — orchestrator + specialist agent pattern |
-| Tool protocol | MCP (Python SDK) | Course requirement — exposes tools to all agents cleanly |
-| Backend | FastAPI + Python 3.11 | Async, typed, fast — ideal for streaming agent responses |
-| Frontend | React 18 + Vite | Fast HMR in dev, tiny prod bundle, component-based UI |
-| Styling | Tailwind CSS | Utility-first, no CSS file maintenance |
-| Database | SQLite + SQLAlchemy | Zero config, ships in the container, persistent progress |
-| Auth | python-jose + JWT | Stateless, Railway-compatible, standard |
-| Deployment | Railway.app | GitHub auto-deploy, free tier, two services |
-| CI | GitHub Actions | Auto-test and deploy on every push to main |
-| CLI | Python + argparse | Agents CLI skill — course requirement |
-
----
-
-## How it satisfies the competition rubric
-
-```
-Innovation ──────────────────────────────────────────── ✓
-  Multi-track system serving 4 engineering disciplines.
-  No other submission personalises content by student major.
-  Code review agent with actual sandbox execution is unique.
-
-Solution value ──────────────────────────────────────── ✓
-  Addresses a real pain point: every CS student needs
-  personalised help but can't afford tutors.
-  Works offline — ideal for students with limited connectivity.
-
-Technical implementation ────────────────────────────── ✓
-  All 6 course concepts implemented with working code.
-  Not a chatbot wrapper — a genuine multi-agent pipeline.
-  MCP server provides clean tool abstraction across agents.
-
-Demonstration ───────────────────────────────────────── ✓
-  Video shows: track switching → tutor → quiz → CLI → deploy.
-  Kaggle writeup maps every agent to course concepts.
-  Public Railway URL for judges to try live.
-```
----
-
-## Screenshots
- <img width="952" height="532" alt="Screenshot 2026-06-26 024026" src="https://github.com/user-attachments/assets/b8eb61ca-ff3e-4a7b-8074-79fcbc487e4a" />
-
-***
-
-<img width="1842" height="738" alt="Screenshot 2026-06-26 195047" src="https://github.com/user-attachments/assets/92cbcc82-f635-4fcf-b9a1-4cc5c3957b61" />
-
-***
-
-<img width="1870" height="757" alt="Screenshot 2026-06-26 194816" src="https://github.com/user-attachments/assets/e067bafe-3709-459a-b9bf-b9b2d32a6a99" />
-
-***
-
-<img width="1860" height="719" alt="Screenshot 2026-06-26 195124" src="https://github.com/user-attachments/assets/d64e1df1-b20a-4ea8-bfd0-e3091e5383d2" />
-
----
-
-## DemoVideo
-
-https://github.com/user-attachments/assets/b91270fd-b574-47b5-9889-67979842cdc9
-
----
-## Contributing
-
-Pull requests are welcome. For major changes, open an issue first.
+Then you can run:
 
 ```bash
-# Development setup (no Docker needed)
-cd backend && pip install -r requirements.txt && uvicorn main:app --reload
-cd frontend && npm install && npm run dev
+# Get a topic explained
+learnforge study --topic "transformer attention mechanism" --track aiml
+
+# Take a quiz
+learnforge quiz --topic "backpropagation" --difficulty hard
+
+# Generate a study plan
+learnforge plan --goal "master MLOps in 30 days" --track aiml
+
+# Get code reviewed
+learnforge review --file my_model.py
 ```
+---
+# Screenshots
+<img width="1900" height="973" alt="Screenshot 2026-06-26 024228" src="https://github.com/user-attachments/assets/547d25b2-0f3f-4e67-b073-4e7bfad10ea3" />
+***
+<img width="1842" height="738" alt="Screenshot 2026-06-26 195047" src="https://github.com/user-attachments/assets/bcd78213-cbb5-4e0a-93a3-77612b6853c0" />
+***
+<img width="1870" height="757" alt="Screenshot 2026-06-26 194816" src="https://github.com/user-attachments/assets/65109cab-73c9-4f5e-b0d5-95d730b8422d" />
+***
+<img width="1860" height="719" alt="Screenshot 2026-06-26 195124" src="https://github.com/user-attachments/assets/dfa4f398-644b-4f66-b4f1-b49f1554e7b3" />
+
+---
+# DemoVideo
+
+https://github.com/user-attachments/assets/f5ad7c8e-f4a7-4958-b2c9-f847d22004d3
+
+---
+
+## Tech stack — what powers LearnForge
+
+| Part | Technology | Why this was chosen |
+|---|---|---|
+| AI model | Gemma 3 via Ollama | Runs 100% locally, no internet or API key needed |
+| Agent framework | Google ADK | Competition requirement, clean multi-agent pattern |
+| Tool protocol | MCP Python SDK | Competition requirement, lets agents share tools |
+| Backend | FastAPI + Python 3.11 | Fast, modern, great for streaming AI responses |
+| Frontend | React 18 + Vite | Fast builds, great developer experience |
+| Styling | Tailwind CSS | No CSS files to maintain |
+| Database | SQLite + SQLAlchemy | Zero config, stores progress locally |
+| Authentication | JWT (python-jose) | Secure, stateless, works on Railway |
+| Deployment | Railway.app | Free tier, GitHub auto-deploy |
+| CI/CD | GitHub Actions | Tests run automatically on every push |
+| CLI | Python + argparse | Agent skills competition requirement |
+
+---
+
+## Why LearnForge is different
+
+Most AI study tools are just a chatbot wrapper around GPT. LearnForge is different in three ways:
+
+**1. It knows your discipline.** When you pick AI/ML as your track, every topic, quiz, study plan, and tutor response is calibrated for AI/ML. A CSE student gets completely different content.
+
+**2. It actually remembers your progress.** Your quiz results are stored locally. The Quiz Agent reads them before generating questions, so it focuses on what you actually struggle with.
+
+**3. It runs your code for real.** The Code Review Agent doesn't just read your code — it executes it in a sandbox and shows you the actual output alongside the feedback.
 
 ---
 
 ## Acknowledgements
 
 - Google × Kaggle 5-Day AI Agents Intensive Course 2026
-- Google ADK team for the agent framework
+- Google ADK team for the multi-agent framework
 - Ollama project for making local LLMs accessible
 - MCP SDK contributors
 
 ---
 
 ## Developer
-* Priynashu Vijay
-* 📝 License [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](/LICENSE)
-#
+
+**Priynashu Vijay** — Built for Google × Kaggle Vibe Coding Capstone 2026
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+---
