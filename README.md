@@ -16,7 +16,6 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-Multi--Agent-4285F4?style=flat-square&logo=google&logoColor=white)](https://google.github.io/adk-docs/)
 [![MCP](https://img.shields.io/badge/MCP-Server-6366F1?style=flat-square)](https://modelcontextprotocol.io)
-[![Railway](https://img.shields.io/badge/Deployed%20on-Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white)](https://railway.app)
 [![License](https://img.shields.io/badge/License-MIT-10B981?style=flat-square)](LICENSE)
 [![Kaggle](https://img.shields.io/badge/Kaggle-Capstone%202026-20BEFF?style=flat-square&logo=kaggle&logoColor=white)](https://kaggle.com)
 
